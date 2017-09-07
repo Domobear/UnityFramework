@@ -9,6 +9,7 @@ namespace Domo
     {
         public static Kernel Instance { get; private set; }
 
+        private TimerManager timerManager;
         private CoreStateManager coreStateManager;
 
         private void Awake()
@@ -25,25 +26,25 @@ namespace Domo
             CreateAllInstance();
         }
 
-        private void OnEnable()
-        {
-            // TODO:Set all kernel.
-        }
-
         private void Start()
         {
-            coreStateManager = CoreStateManager.Instance;
+            coreStateManager.Initialize();
         }
 
         private void Update()
         {
+            timerManager.OnUpdate();
             coreStateManager.OnUpdate();
         }
 
         private void CreateAllInstance()
         {
             ResourceManager.CreateInstance();
+            TimerManager.CreateInstance();
             CoreStateManager.CreateInstance();
+
+            timerManager = TimerManager.Instance;
+            coreStateManager = CoreStateManager.Instance;
         }
     }
 }

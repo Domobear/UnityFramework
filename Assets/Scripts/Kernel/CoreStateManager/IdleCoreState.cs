@@ -1,5 +1,6 @@
 ﻿namespace Domo
 {
+    [CoreState(0)]
     public class IdleCoreState : ICoreState
     {
         public override void OnEnable() { }

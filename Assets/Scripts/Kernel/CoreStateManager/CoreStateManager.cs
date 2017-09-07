@@ -16,13 +16,35 @@ namespace Domo
             }
         }
 
-        private CoreStateManager() { }
+        public int LastStateID
+        {
+            get
+            {
+                CoreStateAttribute attr = Attribute.GetCustomAttribute(lastState.GetType(), typeof(CoreStateAttribute)) as CoreStateAttribute;
+                return attr.id;
+            }
+        }
+
+        private Dictionary<int, ICoreState> stateDic;
 
         private ICoreState globalState;
         private ICoreState currentState;
 
-        //private IState lastState;
+        private ICoreState lastState;
         private ICoreState nextState;
+
+        private CoreStateManager()
+        {
+            stateDic = new Dictionary<int, ICoreState>(8);
+        }
+
+        public void Initialize()
+        {
+            globalState = new IdleCoreState();
+            currentState = new IdleCoreState();
+
+            lastState = new IdleCoreState();
+        }
 
         public void OnUpdate()
         {
@@ -34,21 +56,54 @@ namespace Domo
                 return;
             }
 
-            if(currentState != null)
-            {
-                currentState.OnDisable();
-            }
+            currentState.OnDisable();
 
-            //lastState = currentState;
+            lastState = currentState;
             currentState = nextState;
             nextState = null;
 
             currentState.OnEnable();
         }
 
-        public void ChangeState()
+        public T GetState<T>() where T : ICoreState
         {
+            CoreStateAttribute attr = Attribute.GetCustomAttribute(typeof(T), typeof(CoreStateAttribute)) as CoreStateAttribute;
 
+            if(attr == null)
+            {
+                return null;
+            }
+
+            if(stateDic.ContainsKey(attr.id))
+            {
+                return stateDic[attr.id] as T;
+            }
+
+            return null;
+        }
+
+        public void ChangeGlobalState(int iStateID)
+        {
+            if(stateDic.ContainsKey(iStateID))
+            {
+                globalState.OnDisable();
+                globalState = stateDic[iStateID];
+                globalState.OnEnable();
+                return;
+            }
+
+            Debug.LogErrorFormat("[CoreStatemanager] ICoreState isn't exsist.", iStateID);
+        }
+
+        public void ChangeState(int iStateID)
+        {
+            if(nextState != null)
+            {
+                Debug.LogFormat("[Core] NextState already exsist: {0}", nextState.ToString());
+                return;
+            }
+
+            stateDic.TryGetValue(iStateID, out nextState);
         }
 
         private void CreateAllState()
@@ -62,11 +117,32 @@ namespace Domo
                     continue;
                 }
 
-                ICoreState state = Activator.CreateInstance(type) as ICoreState;
-                CoreStateAttribute attr = Attribute.GetCustomAttribute(type, typeof(CoreStateAttribute)) as CoreStateAttribute;
-
-                //AddState(attr, state);
+                AddState(type);
             }
+        }
+
+        private void AddState(Type iType)
+        {
+            ICoreState state = Activator.CreateInstance(iType) as ICoreState;
+            if(state == null)
+            {
+                return;
+            }
+
+            CoreStateAttribute attr = Attribute.GetCustomAttribute(iType, typeof(CoreStateAttribute)) as CoreStateAttribute;
+            if(attr == null)
+            {
+                Debug.LogErrorFormat("[CoreStatemanager] ICoreState: {0} has no CoreStateAttribute.", state.GetType().FullName);
+                return;
+            }
+
+            if(stateDic.ContainsKey(attr.id))
+            {
+                Debug.LogErrorFormat("[CoreStatemanager] ICoreState: {0} is duplicated.", attr.id);
+                return;
+            }
+
+            stateDic.Add(attr.id, state);
         }
     }
 }
