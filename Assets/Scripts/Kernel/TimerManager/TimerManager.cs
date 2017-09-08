@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Domo
@@ -22,9 +23,11 @@ namespace Domo
             timerList = new List<Timer>(32);
         }
 
-        public void Add(Timer iTimer)
+        public Timer New(float iInterval, Action iCallback)
         {
-            timerList.Add(iTimer);
+            Timer timer = new Timer(iInterval, iCallback);
+            timerList.Add(timer);
+            return timer;
         }
 
         public void OnUpdate()

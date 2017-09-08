@@ -36,14 +36,11 @@ namespace Domo
         private CoreStateManager()
         {
             stateDic = new Dictionary<int, ICoreState>(8);
-        }
 
-        public void Initialize()
-        {
-            globalState = new IdleCoreState();
-            currentState = new IdleCoreState();
-
-            lastState = new IdleCoreState();
+            ICoreState idleState = new IdleCoreState();
+            globalState = idleState;
+            currentState = idleState;
+            lastState = idleState;
         }
 
         public void OnUpdate()
@@ -99,7 +96,7 @@ namespace Domo
         {
             if(nextState != null)
             {
-                Debug.LogFormat("[Core] NextState already exsist: {0}", nextState.ToString());
+                Debug.LogFormat("[CoreStatemanager] NextState already exsist: {0}", nextState.ToString());
                 return;
             }
 

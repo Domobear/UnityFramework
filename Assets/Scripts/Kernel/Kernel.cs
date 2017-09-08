@@ -9,6 +9,8 @@ namespace Domo
     {
         public static Kernel Instance { get; private set; }
 
+        public CoreStateConfig coreStateConfig;
+
         private TimerManager timerManager;
         private CoreStateManager coreStateManager;
 
@@ -28,7 +30,8 @@ namespace Domo
 
         private void Start()
         {
-            coreStateManager.Initialize();
+            coreStateManager.ChangeGlobalState(coreStateConfig.firstGlobalState);
+            coreStateManager.ChangeState(coreStateConfig.firstState);
         }
 
         private void Update()
